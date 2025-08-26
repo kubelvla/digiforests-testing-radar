@@ -10,7 +10,7 @@ services:
         - GID=${GID:-1000}
     volumes:
       - "../:/home/dev/digiforests_devkit"
-      # - "/data/digiforests:/data"
+      - "/media/vladimir/rnp_lab/Digiforest_dataset:/data"
     deploy:
       resources:
         reservations:

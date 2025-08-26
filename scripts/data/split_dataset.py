@@ -111,7 +111,7 @@ def split(
 
     for idx, exp_folder_list in enumerate(exp_folders):
         for folder in exp_folder_list:
-            files = list((raw_folder / folder / "individual_clouds").glob("*.pcd"))
+            files = list((raw_folder / folder / "ground_clouds").glob("*.pcd"))
             relative_files = [file_path.relative_to(raw_folder) for file_path in files]
             exp_files[idx].extend(relative_files)
 

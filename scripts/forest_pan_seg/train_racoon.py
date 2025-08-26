@@ -36,9 +36,10 @@ import digiforests_dataloader.transforms as ddt
 from digiforests_dataloader.utils.logging import logger
 from digiforests_dataloader.utils.serialize import PathEncoder
 from digiforests_dataloader import MinkowskiDigiForestsDataModule
+from digiforests_dataloader import MinkowskiRacoonDataModule
 from digiforests_dataloader.utils.io import load_yaml_or_json, write_json, write_yaml
 
-from forest_pan_seg import MinkUNetPanoptic
+from forest_pan_seg import MinkUNetPanoptic, MinkUNetPanopticRacoon
 from forest_pan_seg.utils import ConsoleLogger, sync_config_keys
 
 app = typer.Typer(rich_markup_mode="markdown")
@@ -92,7 +93,7 @@ def train(
         debug_no_augmentation = datamodule_config.pop("debug_no_augmentation")
         batch_transform = None if debug_no_augmentation else batch_transform
 
-    datamodule = MinkowskiDigiForestsDataModule(
+    datamodule = MinkowskiRacoonDataModule(
         data_dir=data_dir,
         dataset_config=dataset_config,
         transform=None,
@@ -105,7 +106,7 @@ def train(
 
     # Model
     # ----------------------
-    model = MinkUNetPanoptic(**model_config)
+    model = MinkUNetPanopticRacoon(**model_config)
     assert (
         model.hparams.num_classes == datamodule.dataset_cls.num_classes
     ), f"model num_classes {model.hparams.num_classes} doesnt match the dataset {datamodule.dataset_cls.num_classes}"

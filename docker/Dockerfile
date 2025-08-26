@@ -72,7 +72,7 @@ RUN sudo apt-get update && sudo apt-get install --no-install-recommends -y \
 
 # From the minkowski repo: You should modify this to match your GPU compute capability
 # You can check what to fill here based on the output of nvcc --list-gpu-arch
-ENV TORCH_CUDA_ARCH_LIST="6.0 6.1 6.2 7.0 7.2 7.5 8.0 8.6 8.7 8.9 9.0"
+ENV TORCH_CUDA_ARCH_LIST="5.0 5.2 5.3 6.0 6.1 6.2 7.0 7.2 7.5 8.0 8.6 8.7 8.9"
 ENV TORCH_NVCC_FLAGS="-Xfatbin -compress-all"
 ENV MAX_JOBS=8
 RUN git clone --recursive "https://github.com/NVIDIA/MinkowskiEngine"
