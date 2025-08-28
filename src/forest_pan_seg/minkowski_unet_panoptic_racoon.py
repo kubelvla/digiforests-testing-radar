@@ -135,7 +135,7 @@ class MinkUNetPanopticRacoon(pl.LightningModule):
                         ignore_index=0,
                         average="none",
                     ),
-                    labels=["Ignore", "Ground", "Shrub", "Stem", "Canopy"],
+                    labels=["Unlabelled", "Tree_trunk", "Tree_canopy", "Rock", "Bush_or_small_tree", "Car", "Building_or_similar", "Lamp_or_sign"],
                 ),
             },
             prefix="seg/",
@@ -151,7 +151,7 @@ class MinkUNetPanopticRacoon(pl.LightningModule):
                         min_points=10,
                         minkowski=True,
                     ),
-                    labels=["Ignore", "Ground", "Shrub", "Tree"],
+                    labels=["Unlabelled", "Tree_trunk", "Tree_canopy", "Rock", "Bush_or_small_tree", "Car", "Building_or_similar", "Lamp_or_sign"],
                 ),
             },
             prefix="pan/",
@@ -304,7 +304,7 @@ class MinkUNetPanopticRacoon(pl.LightningModule):
             on_step=True,
             on_epoch=False,
         )
-        inst_loss = self.instance_loss(inst_logits, target_offset, target_inst)
+        inst_loss = None #self.instance_loss(inst_logits, target_offset, target_inst)
         if inst_loss:
             self.log(
                 "train/loss_inst",
@@ -329,20 +329,20 @@ class MinkUNetPanopticRacoon(pl.LightningModule):
             target=target_sem.int(),
         )
 
-        if self._should_log_pq(mode="train"):
-            pred_sem, pred_inst = self._get_pq_predictions(
-                seg_logits, inst_logits, coords
-            )
-            # need to adjust for the change in sem classes in pq eval
-            pq_target_sem = target_sem.clone()
-            pq_target_sem[pq_target_sem == 4] = 3
-            self.train_pan_metrics.update(
-                pred_sem=pred_sem,
-                target_sem=pq_target_sem,
-                pred_inst=pred_inst,
-                target_inst=target_inst,
-                batch_idx=coords[:, 0],  # minkowski batch coords
-            )
+        # if self._should_log_pq(mode="train"):
+        #     pred_sem, pred_inst = self._get_pq_predictions(
+        #         seg_logits, inst_logits, coords
+        #     )
+        #     # need to adjust for the change in sem classes in pq eval
+        #     pq_target_sem = target_sem.clone()
+        #     pq_target_sem[pq_target_sem == 4] = 3
+        #     self.train_pan_metrics.update(
+        #         pred_sem=pred_sem,
+        #         target_sem=pq_target_sem,
+        #         pred_inst=pred_inst,
+        #         target_inst=target_inst,
+        #         batch_idx=coords[:, 0],  # minkowski batch coords
+        #     )
 
         return loss
 
@@ -361,7 +361,7 @@ class MinkUNetPanopticRacoon(pl.LightningModule):
             on_step=True,
             on_epoch=False,
         )
-        inst_loss = self.instance_loss(inst_logits, target_offset, target_inst)
+        inst_loss = None # self.instance_loss(inst_logits, target_offset, target_inst)
         if inst_loss:
             self.log(
                 "val/loss_inst",
@@ -386,20 +386,20 @@ class MinkUNetPanopticRacoon(pl.LightningModule):
             target=target_sem.int(),
         )
 
-        if self._should_log_pq(mode="val"):
-            pred_sem, pred_inst = self._get_pq_predictions(
-                seg_logits, inst_logits, coords
-            )
-            # need to adjust for the change in sem classes in pq eval
-            pq_target_sem = target_sem.clone()
-            pq_target_sem[pq_target_sem == 4] = 3
-            self.val_pan_metrics.update(
-                pred_sem=pred_sem,
-                target_sem=pq_target_sem,
-                pred_inst=pred_inst,
-                target_inst=target_inst,
-                batch_idx=coords[:, 0],  # minkowski batch coords
-            )
+        # if self._should_log_pq(mode="val"):
+        #     pred_sem, pred_inst = self._get_pq_predictions(
+        #         seg_logits, inst_logits, coords
+        #     )
+        #     # need to adjust for the change in sem classes in pq eval
+        #     pq_target_sem = target_sem.clone()
+        #     pq_target_sem[pq_target_sem == 4] = 3
+        #     self.val_pan_metrics.update(
+        #         pred_sem=pred_sem,
+        #         target_sem=pq_target_sem,
+        #         pred_inst=pred_inst,
+        #         target_inst=target_inst,
+        #         batch_idx=coords[:, 0],  # minkowski batch coords
+        #     )
         return None
 
     def test_step(
@@ -484,16 +484,16 @@ class MinkUNetPanopticRacoon(pl.LightningModule):
         # see https://github.com/Lightning-AI/torchmetrics/issues/2091
         train_metrics = {}
         train_metrics.update(self.train_seg_metrics.compute())
-        if self._should_log_pq(mode="train"):
-            train_metrics.update(self.train_pan_metrics.compute())
+        # if self._should_log_pq(mode="train"):
+        #     train_metrics.update(self.train_pan_metrics.compute())
         self.log_dict(
             train_metrics,
             batch_size=self.hparams.batch_size,
         )
         self.train_seg_metrics.reset()
-        if self._should_log_pq(mode="train"):
-            self._logged_pq(mode="train")
-            self.train_pan_metrics.reset()
+        # if self._should_log_pq(mode="train"):
+        #     self._logged_pq(mode="train")
+        #     self.train_pan_metrics.reset()
 
     def on_validation_batch_end(
         self, outputs, batch, batch_idx: int, dataloader_idx: int = 0
@@ -504,8 +504,8 @@ class MinkUNetPanopticRacoon(pl.LightningModule):
     def on_validation_epoch_end(self) -> None:
         val_metrics = {}
         val_metrics.update(self.val_seg_metrics.compute())
-        if self._should_log_pq(mode="val"):
-            val_metrics.update(self.val_pan_metrics.compute())
+        # if self._should_log_pq(mode="val"):
+        #     val_metrics.update(self.val_pan_metrics.compute())
         self.log_dict(
             val_metrics,
             batch_size=self.hparams.batch_size,

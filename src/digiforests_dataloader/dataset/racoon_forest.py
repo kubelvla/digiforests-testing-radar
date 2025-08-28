@@ -135,7 +135,7 @@ class RacoonDataset(BaseDataset):
     """
 
     #num_classes = len(Labels.To)
-    num_classes = 8    # We may need to implement the class reduction if that is too many
+    num_classes = 8    #VK: We may need to implement the class reduction if that is too many
 
     def __init__(
         self,
@@ -254,8 +254,8 @@ class RacoonDataset(BaseDataset):
 
             if self.include_instance:
                 # instance is int64 (long). int32 causes issues
-                #instance_v = labels.instance.astype(np.int64).reshape(-1)               #VK: we don't have this
-                instance_v = np.zeros([pos.shape[0],1])                                  #VK: zeros for now
+                #instance_v = labels.instance.astype(np.int64).reshape(-1)                     #VK: we don't have this
+                instance_v = np.random.randint(1, 100, size=(pos.shape[0], 1)).astype(np.int64)    #VK: random for now
                 instance_v = instance_v - np.min(instance_v)
                 if instance_v.shape[0] != pos.shape[0]:
                     raise ValueError(
