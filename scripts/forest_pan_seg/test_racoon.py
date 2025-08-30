@@ -30,10 +30,12 @@ from lightning.pytorch import seed_everything
 
 import digiforests_dataloader.transforms as ddt
 from digiforests_dataloader import DigiForestsDataset
+from digiforests_dataloader import RacoonDataset
 from digiforests_dataloader.utils.logging import logger
 from digiforests_dataloader.data_module.digiforests import mink_collate_fn
 
 from forest_pan_seg import MinkUNetPanoptic
+from forest_pan_seg import MinkUNetPanopticRacoon
 
 app = typer.Typer(rich_markup_mode="markdown")
 
@@ -43,7 +45,7 @@ def prepare_dataloader(data_dir):
         [ddt.CenterGlobal(verbose=True), ddt.AddOffsets(ignore_id=0)]
     )
 
-    dataset = DigiForestsDataset(
+    dataset = RacoonDataset(
         root=data_dir,
         mode="scan",
         split="test",
@@ -69,7 +71,7 @@ def prepare_dataloader(data_dir):
 def prepare_model(ckpt_path: Path):
     assert ckpt_path.exists(), f"{ckpt_path} doesn't exist"
     # load the model
-    model = MinkUNetPanoptic.load_from_checkpoint(ckpt_path)
+    model = MinkUNetPanopticRacoon.load_from_checkpoint(ckpt_path)
     model.to("cuda")
     return model
 
@@ -95,19 +97,19 @@ def test(data_dir: Path, ckpt_path: Path):
         model.test_step(batch, idx)
     test_metrics = {}
     test_metrics.update(model.test_seg_metrics.compute())
-    test_metrics.update(model.test_pan_metrics.compute())
+    #test_metrics.update(model.test_pan_metrics.compute())
     # we dont need some stuff
-    del (
-        test_metrics["test/panopticquality_Ignore"],
-        test_metrics["test/panopticquality_Ground"],
-        test_metrics["test/panopticquality_Shrub"],
-    )
-    # we need the mean PQ
-    test_metrics["Mean_PQ"] = (
-        test_metrics["test/multiclassjaccardindex_Ground"]
-        + test_metrics["test/multiclassjaccardindex_Shrub"]
-        + test_metrics["test/panopticquality_Tree"]
-    ) / 3
+    # del (
+    #     test_metrics["test/panopticquality_Ignore"],
+    #     test_metrics["test/panopticquality_Ground"],
+    #     test_metrics["test/panopticquality_Shrub"],
+    # )
+    # # we need the mean PQ
+    # test_metrics["Mean_PQ"] = (
+    #     test_metrics["test/multiclassjaccardindex_Ground"]
+    #     + test_metrics["test/multiclassjaccardindex_Shrub"]
+    #     + test_metrics["test/panopticquality_Tree"]
+    # ) / 3
     print(
         json.dumps({key: value.item() for key, value in test_metrics.items()}, indent=4)
     )
