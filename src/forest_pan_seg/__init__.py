@@ -1,2 +1,3 @@
 from .minkowski_unet_panoptic import MinkUNetPanoptic
 from .minkowski_unet_panoptic_racoon import MinkUNetPanopticRacoon
+from .minkowski_unet_panoptic_racoon_radar import MinkUNetPanopticRacoonRadar
