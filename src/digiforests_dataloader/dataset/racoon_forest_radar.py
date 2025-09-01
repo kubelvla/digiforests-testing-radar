@@ -236,7 +236,7 @@ class RacoonDatasetRadar(BaseDataset):
         power_R_compensated = power + 20*np.log10(4*np.pi) - 40*np.log10(range)
 
         # store as pytorch tensors
-        power_t = torch.from_numpy(intensity)
+        power_t = torch.from_numpy(power)
         data["power"] = power_t
 
         power_R_compensated_t = torch.from_numpy(power_R_compensated)

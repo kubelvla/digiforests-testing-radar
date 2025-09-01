@@ -30,12 +30,12 @@ from lightning.pytorch import seed_everything
 
 import digiforests_dataloader.transforms as ddt
 from digiforests_dataloader import DigiForestsDataset
-from digiforests_dataloader import RacoonDataset
+from digiforests_dataloader import RacoonDatasetRadar
 from digiforests_dataloader.utils.logging import logger
-from digiforests_dataloader.data_module.racoon_datamodule import mink_collate_fn
+from digiforests_dataloader.data_module.racoon_datamodule_radar import mink_collate_fn
 
 from forest_pan_seg import MinkUNetPanoptic
-from forest_pan_seg import MinkUNetPanopticRacoon
+from forest_pan_seg import MinkUNetPanopticRacoonRadar
 
 app = typer.Typer(rich_markup_mode="markdown")
 
@@ -45,7 +45,7 @@ def prepare_dataloader(data_dir):
         [ddt.CenterGlobal(verbose=True), ddt.AddOffsets(ignore_id=0)]
     )
 
-    dataset = RacoonDataset(
+    dataset = RacoonDatasetRadar(
         root=data_dir,
         mode="scan",
         split="test",
@@ -71,7 +71,7 @@ def prepare_dataloader(data_dir):
 def prepare_model(ckpt_path: Path):
     assert ckpt_path.exists(), f"{ckpt_path} doesn't exist"
     # load the model
-    model = MinkUNetPanopticRacoon.load_from_checkpoint(ckpt_path)
+    model = MinkUNetPanopticRacoonRadar.load_from_checkpoint(ckpt_path)
     model.to("cuda")
     return model
 
