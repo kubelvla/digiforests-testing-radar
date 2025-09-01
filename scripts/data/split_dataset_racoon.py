@@ -163,7 +163,8 @@ def split(
     exp_folders_and_sample_index = [
     #    ("2024-05/all_clouds_skip4",1),
     #    ("2024-06/all_clouds_skip4",0),
-        ("2024_05/single_scan_skip7",1)
+    #    ("2024_05/single_scan_skip7",1)
+        ("2024_05/six_scans_skip_2",1)
     ]
 
     train_files_abs = []

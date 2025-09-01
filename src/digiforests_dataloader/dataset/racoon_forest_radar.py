@@ -233,7 +233,7 @@ class RacoonDatasetRadar(BaseDataset):
         doppler = cloud.get_attribute("doppler").astype(np.float32)
 
         # compute pseudo radar cross section
-        power_R_compensated = power + 20*np.log10(4*np.pi) - 40*np.log10(range)
+        power_R_compensated = power + 20*np.log10(4*np.pi) + 40*np.log10(range)   # This is WRONG!!!
 
         # store as pytorch tensors
         power_t = torch.from_numpy(power)
