@@ -50,7 +50,7 @@ class MinkUNetPanopticRacoonRadar(pl.LightningModule):
         vds: float = 0.1,
         in_channels=1,
         embedding_size=32,
-        num_classes=8,
+        num_classes=9,
         coord_dimension=3,
         lr: float = 0.001,
         batch_size: int = 1,
@@ -98,9 +98,9 @@ class MinkUNetPanopticRacoonRadar(pl.LightningModule):
             num_layers=4,
         )
         self.segmentation_loss = torch.nn.CrossEntropyLoss(
-            reduction="mean", ignore_index=0
+            reduction="mean", ignore_index=8
         )  # consider smoothing=True
-        self.instance_loss = OffsetLoss(ignore_target_instance_id=0)
+        self.instance_loss = OffsetLoss(ignore_target_instance_id=8)
         self.last_pq_log = {"train": -1, "val": -1}
 
     def setup_metrics(self):
@@ -126,16 +126,16 @@ class MinkUNetPanopticRacoonRadar(pl.LightningModule):
                 "Mean_IOU": MulticlassJaccardIndex(
                     num_classes=self.hparams.num_classes,
                     # TODO: hardcoded ignore index, same in loss
-                    ignore_index=0,
+                    ignore_index=8,
                     average="macro",
                 ),
                 "IOU": ClasswiseWrapper(
                     MulticlassJaccardIndex(
                         num_classes=self.hparams.num_classes,
-                        ignore_index=0,
+                        ignore_index=8,
                         average="none",
                     ),
-                    labels=["Unlabelled", "Tree_trunk", "Tree_canopy", "Rock", "Bush_or_small_tree", "Car", "Building_or_similar", "Lamp_or_sign"],
+                    labels=["Ground", "Tree_trunk", "Tree_canopy", "Rock", "Bush_or_small_tree", "Car", "Building_or_similar", "Lamp_or_sign", "Ignore"],
                 ),
             },
             prefix="seg/",
@@ -147,11 +147,11 @@ class MinkUNetPanopticRacoonRadar(pl.LightningModule):
                     PanopticQuality(
                         num_classes=self.hparams.num_classes - 1,
                         average="none",
-                        ignore_id=0,
+                        ignore_id=8,
                         min_points=10,
                         minkowski=True,
                     ),
-                    labels=["Unlabelled", "Tree_trunk", "Tree_canopy", "Rock", "Bush_or_small_tree", "Car", "Building_or_similar", "Lamp_or_sign"],
+                    labels=["Ground", "Tree_trunk", "Tree_canopy", "Rock", "Bush_or_small_tree", "Car", "Building_or_similar", "Lamp_or_sign", "Ignore"],
                 ),
             },
             prefix="pan/",
@@ -424,20 +424,21 @@ class MinkUNetPanopticRacoonRadar(pl.LightningModule):
             target=target_sem.int(),
         )
 
-        pred_sem, pred_inst = self._get_pq_predictions(seg_logits, inst_logits, coords)
-        # need to adjust for the change in sem classes in pq eval
-        pq_target_sem = target_sem.clone()
-        pq_target_sem[pq_target_sem == 4] = 3
+        # pred_sem, pred_inst = self._get_pq_predictions(seg_logits, inst_logits, coords)
+        # # need to adjust for the change in sem classes in pq eval
+        # pq_target_sem = target_sem.clone()
+        # pq_target_sem[pq_target_sem == 4] = 3
+        #
+        # self.test_pan_metrics.update(
+        #     pred_sem=pred_sem,
+        #     target_sem=pq_target_sem,
+        #     pred_inst=pred_inst,
+        #     target_inst=target_inst,
+        #     batch_idx=coords[:, 0],  # minkowski batch coords
+        # )
 
-        self.test_pan_metrics.update(
-            pred_sem=pred_sem,
-            target_sem=pq_target_sem,
-            pred_inst=pred_inst,
-            target_inst=target_inst,
-            batch_idx=coords[:, 0],  # minkowski batch coords
-        )
-
-        return {"sem": seg_logits.max(dim=1)[1], "inst": pred_inst}
+        #return {"sem": seg_logits.max(dim=1)[1], "inst": pred_inst}
+        return {"sem": seg_logits.max(dim=1)[1], "inst": None}
 
     def predict_step(self, batch, batch_idx: int, dataloader_idx: int = 0):
         coords = batch["pos"]
@@ -448,9 +449,11 @@ class MinkUNetPanopticRacoonRadar(pl.LightningModule):
         )
         pred["seg_sem"] = seg_sem
         pred["seg_sem_conf"] = seg_sem_conf
-        pred_sem, pred_inst = self._get_pq_predictions(seg_logits, inst_logits, coords)
-        pred["pq_sem"] = pred_sem
-        pred["pq_inst"] = pred_inst
+        #pred_sem, pred_inst = self._get_pq_predictions(seg_logits, inst_logits, coords)
+        # pred["pq_sem"] = pred_sem
+        # pred["pq_inst"] = pred_inst
+        pred["pq_sem"] = None
+        pred["pq_inst"] = None
         return pred
 
     def configure_optimizers(self):

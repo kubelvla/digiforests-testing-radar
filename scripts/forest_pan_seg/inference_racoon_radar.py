@@ -30,13 +30,13 @@ from torch.utils.data import DataLoader
 from lightning.pytorch import seed_everything
 
 import digiforests_dataloader.transforms as ddt
-from digiforests_dataloader import DigiForestsDataset
-from digiforests_dataloader import RacoonDataset
+from digiforests_dataloader import RacoonDatasetRadar
+
 
 from digiforests_dataloader.utils.logging import logger
 
-from forest_pan_seg import MinkUNetPanoptic
-from forest_pan_seg import MinkUNetPanopticRacoon
+
+from forest_pan_seg import MinkUNetPanopticRacoonRadar
 
 from src.digiforests_dataloader.utils.cloud import Cloud
 
@@ -72,7 +72,7 @@ def collate_fn(batch: list[dict[str, Tensor]]):
     # }
 
     #VK: The above looks like some older code, below is the collate fn from the dataset:
-    pos_list, intensity_list, semantics_list, instance_list, offset_list = list(
+    pos_list, power_list, power_R_compensated_list, doppler_list, semantics_list, instance_list, offset_list = list(
         zip(*batch_dict_values)
     )
 
@@ -82,17 +82,21 @@ def collate_fn(batch: list[dict[str, Tensor]]):
         batched_pos = torch.hstack((batch_idx.reshape(-1, 1), pos))
         batched_pos_list.append(batched_pos)
     batched_pos = torch.cat(batched_pos_list, dim=0)
-    batched_intensity = torch.cat(intensity_list, dim=0)
+    batched_power = torch.cat(power_list, dim=0)
+    batched_power_R_compensated = torch.cat(power_R_compensated_list, dim=0)
+    batched_doppler = torch.cat(doppler_list, dim=0)
     batched_semantics = torch.cat(semantics_list, dim=0)
     batched_instance = torch.cat(instance_list, dim=0)
     batched_offset = torch.cat(offset_list, dim=0)
     return {
         "filename": filenames,   # VK: This was missing
         "pos": batched_pos,
-        "intensity": batched_intensity,
+        "power": batched_power,
+        "power_R_compensated": batched_power_R_compensated,
+        "doppler": batched_doppler,
         "semantics": batched_semantics,
         "instance": batched_instance,
-        "offset": batched_offset,
+        "offset": batched_offset
     }
 
 
@@ -100,7 +104,7 @@ def collate_fn(batch: list[dict[str, Tensor]]):
 def prepare_dataloader(data_dir):
     pre_transform = ddt.Compose([ddt.CenterGlobal(verbose=True)])
 
-    dataset = RacoonDataset(
+    dataset = RacoonDatasetRadar(
         root=data_dir,
         mode="pred",
         split="pred",
@@ -124,7 +128,7 @@ def prepare_dataloader(data_dir):
 def prepare_model(ckpt_path: Path):
     assert ckpt_path.exists(), f"{ckpt_path} doesn't exist"
     # load the model
-    model = MinkUNetPanopticRacoon.load_from_checkpoint(ckpt_path)
+    model = MinkUNetPanopticRacoonRadar.load_from_checkpoint(ckpt_path)
     model.to("cuda")
     model.train(False)
     return model

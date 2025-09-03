@@ -164,7 +164,10 @@ def split(
     #    ("2024-05/all_clouds_skip4",1),
     #    ("2024-06/all_clouds_skip4",0),
     #    ("2024_05/single_scan_skip7",1)
-        ("2024_05/six_scans_skip_2",1)
+    #     ("2024_05/five_scans_skip_2", 1),
+    #     ("2024_06/five_scans_skip_2", 0)
+        ("2024_05/five_scans_skip_2_trunk_inflated", 1),
+        ("2024_06/five_scans_skip_2_trunk_inflated", 0)
     ]
 
     train_files_abs = []
