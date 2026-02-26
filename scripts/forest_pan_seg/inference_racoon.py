@@ -72,7 +72,7 @@ def collate_fn(batch: list[dict[str, Tensor]]):
     # }
 
     #VK: The above looks like some older code, below is the collate fn from the dataset:
-    pos_list, intensity_list, semantics_list, instance_list, offset_list = list(
+    pos_list, intensity_list  = list(
         zip(*batch_dict_values)
     )
 
@@ -83,16 +83,10 @@ def collate_fn(batch: list[dict[str, Tensor]]):
         batched_pos_list.append(batched_pos)
     batched_pos = torch.cat(batched_pos_list, dim=0)
     batched_intensity = torch.cat(intensity_list, dim=0)
-    batched_semantics = torch.cat(semantics_list, dim=0)
-    batched_instance = torch.cat(instance_list, dim=0)
-    batched_offset = torch.cat(offset_list, dim=0)
     return {
         "filename": filenames,   # VK: This was missing
         "pos": batched_pos,
         "intensity": batched_intensity,
-        "semantics": batched_semantics,
-        "instance": batched_instance,
-        "offset": batched_offset,
     }
 
 
@@ -145,11 +139,21 @@ def predict(data_dir: Path, ckpt_path: Path):
     ), f"model num_classes {model.hparams.num_classes} doesnt match the dataset {inference_dataloader.dataset.num_classes}"
 
     file_to_preds = {}
+
+    # for idx, batch in enumerate(tqdm(inference_dataloader)):
+    #     filenames = batch.pop("filename")
+    #     batch = transfer_batch_to_device(batch)
+    #     preds = model.predict_step(batch, idx)
+    #     file_to_preds[filenames[0]] = preds
+
+    # Use RAM for the predictions
     for idx, batch in enumerate(tqdm(inference_dataloader)):
         filenames = batch.pop("filename")
         batch = transfer_batch_to_device(batch)
         preds = model.predict_step(batch, idx)
+        preds = {k: v.detach().cpu() for k, v in preds.items()}
         file_to_preds[filenames[0]] = preds
+
     return file_to_preds
 
 

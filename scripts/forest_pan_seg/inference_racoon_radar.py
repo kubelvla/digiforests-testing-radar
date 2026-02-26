@@ -31,10 +31,7 @@ from lightning.pytorch import seed_everything
 
 import digiforests_dataloader.transforms as ddt
 from digiforests_dataloader import RacoonDatasetRadar
-
-
 from digiforests_dataloader.utils.logging import logger
-
 
 from forest_pan_seg import MinkUNetPanopticRacoonRadar
 
@@ -72,7 +69,10 @@ def collate_fn(batch: list[dict[str, Tensor]]):
     # }
 
     #VK: The above looks like some older code, below is the collate fn from the dataset:
-    pos_list, power_list, power_R_compensated_list, doppler_list, semantics_list, instance_list, offset_list = list(
+    #pos_list, power_list, power_R_compensated_list, doppler_list, semantics_list, instance_list, offset_list = list(
+    #    zip(*batch_dict_values)
+    #)
+    pos_list, power_list, power_R_compensated_list, doppler_list = list(
         zip(*batch_dict_values)
     )
 
@@ -85,18 +85,12 @@ def collate_fn(batch: list[dict[str, Tensor]]):
     batched_power = torch.cat(power_list, dim=0)
     batched_power_R_compensated = torch.cat(power_R_compensated_list, dim=0)
     batched_doppler = torch.cat(doppler_list, dim=0)
-    batched_semantics = torch.cat(semantics_list, dim=0)
-    batched_instance = torch.cat(instance_list, dim=0)
-    batched_offset = torch.cat(offset_list, dim=0)
     return {
         "filename": filenames,   # VK: This was missing
         "pos": batched_pos,
         "power": batched_power,
         "power_R_compensated": batched_power_R_compensated,
         "doppler": batched_doppler,
-        "semantics": batched_semantics,
-        "instance": batched_instance,
-        "offset": batched_offset
     }
 
 
