@@ -161,13 +161,14 @@ def split(
     """
 
     exp_folders_and_sample_index = [
-    #    ("2024-05/all_clouds_skip4",1),
-    #    ("2024-06/all_clouds_skip4",0),
-    #    ("2024_05/single_scan_skip7",1)
-    #     ("2024_05/five_scans_skip_2", 1),
-    #     ("2024_06/five_scans_skip_2", 0)
-        ("2024_05/five_scans_skip_2_trunk_inflated", 1),
-        ("2024_06/five_scans_skip_2_trunk_inflated", 0)
+        ("2024-05/all_clouds_skip4",1),                            # lidar
+        ("2024-06/all_clouds_skip4",0),                            # lidar
+    #    ("2024_05/single_scan_skip7",1),
+    #    ("2024_06/single_scan_skip7",0),
+    #    ("2024_05/five_scans_skip_2", 1),
+    #    ("2024_06/five_scans_skip_2", 0)
+    #    ("2024_05/five_scans_skip_2_trunk_inflated", 1),          # radar
+    #    ("2024_06/five_scans_skip_2_trunk_inflated", 0)           # radar
     ]
 
     train_files_abs = []
@@ -183,7 +184,10 @@ def split(
     train_files = [file_path.relative_to(raw_folder) for file_path in train_files_abs]
     val_files = [file_path.relative_to(raw_folder) for file_path in val_files_abs]
     test_files = [file_path.relative_to(raw_folder) for file_path in test_files_abs]
-    pred_files = test_files[::10]
+    #pred_files = test_files[::10]    # Paper version
+    pred_files = (train_files+val_files+test_files) # All radar scans
+    #pred_files = (train_files+val_files+test_files)[::10] # Subsampled lidar scans - Roughly 1000 output scans.
+
 
     exp_files = [train_files, val_files, test_files, pred_files]
 
