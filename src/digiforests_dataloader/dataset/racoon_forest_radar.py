@@ -248,7 +248,7 @@ class RacoonDatasetRadar(BaseDataset):
         # __import__("ipdb").set_trace()
 
         # data gets modified based on the state machine
-        if self.mode != "pred":
+        if self.mode != "pred":                       #VK For inference, they want to skip adding GT, but that later prevents us from using the pre-processed files.
             if self.include_semantics:
                 # int32 causes issues
                 #semantics = labels.semantics.astype(np.int64).reshape(-1)
