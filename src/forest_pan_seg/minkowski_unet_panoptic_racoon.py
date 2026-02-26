@@ -50,7 +50,7 @@ class MinkUNetPanopticRacoon(pl.LightningModule):
         vds: float = 0.1,
         in_channels=1,
         embedding_size=32,
-        num_classes=8,
+        num_classes=9,
         coord_dimension=3,
         lr: float = 0.001,
         batch_size: int = 1,
@@ -98,9 +98,9 @@ class MinkUNetPanopticRacoon(pl.LightningModule):
             num_layers=4,
         )
         self.segmentation_loss = torch.nn.CrossEntropyLoss(
-            reduction="mean", ignore_index=0
+            reduction="mean", ignore_index=8
         )  # consider smoothing=True
-        self.instance_loss = OffsetLoss(ignore_target_instance_id=0)
+        self.instance_loss = OffsetLoss(ignore_target_instance_id=8)
         self.last_pq_log = {"train": -1, "val": -1}
 
     def setup_metrics(self):
@@ -126,16 +126,16 @@ class MinkUNetPanopticRacoon(pl.LightningModule):
                 "Mean_IOU": MulticlassJaccardIndex(
                     num_classes=self.hparams.num_classes,
                     # TODO: hardcoded ignore index, same in loss
-                    ignore_index=0,
+                    ignore_index=8,
                     average="macro",
                 ),
                 "IOU": ClasswiseWrapper(
                     MulticlassJaccardIndex(
                         num_classes=self.hparams.num_classes,
-                        ignore_index=0,
+                        ignore_index=8,
                         average="none",
                     ),
-                    labels=["Unlabelled", "Tree_trunk", "Tree_canopy", "Rock", "Bush_or_small_tree", "Car", "Building_or_similar", "Lamp_or_sign"],
+                    labels=["Unlabelled", "Tree_trunk", "Tree_canopy", "Rock", "Bush_or_small_tree", "Car", "Building_or_similar", "Lamp_or_sign", "Ignore"],
                 ),
             },
             prefix="seg/",
@@ -147,11 +147,11 @@ class MinkUNetPanopticRacoon(pl.LightningModule):
                     PanopticQuality(
                         num_classes=self.hparams.num_classes - 1,
                         average="none",
-                        ignore_id=0,
+                        ignore_id=8,
                         min_points=10,
                         minkowski=True,
                     ),
-                    labels=["Unlabelled", "Tree_trunk", "Tree_canopy", "Rock", "Bush_or_small_tree", "Car", "Building_or_similar", "Lamp_or_sign"],
+                    labels=["Unlabelled", "Tree_trunk", "Tree_canopy", "Rock", "Bush_or_small_tree", "Car", "Building_or_similar", "Lamp_or_sign", "Ignore"],
                 ),
             },
             prefix="pan/",

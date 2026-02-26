@@ -135,7 +135,7 @@ class RacoonDataset(BaseDataset):
     """
 
     #num_classes = len(Labels.To)
-    num_classes = 8    #VK: We may need to implement the class reduction if that is too many
+    num_classes = 9    #VK: We may need to implement the class reduction    if that is too many
 
     def __init__(
         self,
